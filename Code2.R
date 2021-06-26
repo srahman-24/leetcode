@@ -1,51 +1,87 @@
 ## Code 2
 ## Given a string, find the length of the longest substring without repeating characters.
 
-input : "abcabcbb"  12312322
-output : 3
-input : "bbbbb"    22222
-output : 1 
-input : "ababcdefdft"    2 1 3 2 4 5 6 4 6 28
+### used break() to break the for loop and next() to skip to the next iteration
 
-longest_substr = function(C){
-  len = NULL
-  Str = NULL 
-  for (i in 1:(nchar(C)-1))
+input : "abcabcbb"  
+output : 3
+input : "bbbbb"    
+output : 1 
+input : "ababcdefdft"    
+
+longest_substr = function(C) {
+  len <- NULL
+  Str <- NULL 
+  for (i in 1:(nchar(C) - 1))
   { 
-    s = substr(C,i,i)
-    count = 1
-    for (j in (i+1):nchar(C))
+    s     <- substr(C,i,i)
+    count <- 1
+    for (j in (i + 1):nchar(C))
     { 
-      for(k in 1:nchar(s))
+      mark <- 0
+      for (k in 1:nchar(s))
       {
-        mark = 0
-        if (substr(s,k,k) != substr(C,j,j))
-        { 
-          mark = mark + 1 
-        }
+         
+        if (substr(s,k,k) == substr(C,j,j))
+          break
+        else 
+          mark <- mark + 1
+          
       }
-      if (mark < nchar(s))
-      {
-      len <- c(len, count)
-      }
-      else 
-      { 
-      len <- c(len, count + 1)
-      count = count + 1 
-      s   <- paste(s, substr(C,j,j), sep = "")
-      }
-      
-      Str = c(Str, s)
-      
+      if (mark == nchar(s)) {
+        count <- count + 1 
+        s     <- paste(s, substr(C,j,j), sep = "")
+      }else 
+        break
     }
-    
-    L      = max(len)
-    string = Str[which.max(len)]
-    
-    return(list(string = string, length = L))
+    len <- c(len, count)
+    Str <- c(Str, s)
     
   }
   
+  L      <- max(len)
+  string <- Str[which.max(len)]
+  
+  
+  return(list(string = string, length = L))
+  
 }
 
-longest_substr("abc")
+longest_substr("abcabcbb") 
+
+
+## Given a string, find the length of the longest palindrome
+
+input : "bbabadabct"
+output : "badab"
+
+
+longPalindrome = function(C) {
+    count <- 1 ; Pal <- NULL 
+    for (i in 1:(nchar(C) - 1))
+     {   
+         for (j in (i + 1):nchar(C))
+         {
+           if ( isPalindrome(substr(C,i,j)) == TRUE)
+              Pal   <-  c(Pal, substr(C,i,j))
+         }
+      }
+  if (is.null(Pal) == F)
+  {
+    Pal_string <- Pal[which.max(nchar(Pal))]
+    return(list(Pal_string = Pal_string, length = max(nchar(Pal))))
+  }else 
+    return("There is no palindrome")
+   
+}
+  
+  
+C = "bbabadabct"
+
+longPalindrome("bbabadabct")
+
+longPalindrome("babad")
+
+longPalindrome("cbbd")
+
+

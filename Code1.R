@@ -1,19 +1,19 @@
 # Coding for interview
 
-x = c(1, 7, 2, 11)
-a = 9
+x <- c(1, 7, 2, 11)
+a <- 9
 
 ##### 1. Two sums #####
 
 twoSums = function(x,a){
-ts = NULL
+ts <- NULL
 for (i in 1:(length(x) - 1)) 
 {
    for (j in (i + 1):length(x))
    {
       if (x[i] + x[j] == a)
       {
-        ts = rbind(ts, c(i,j))
+        ts <- rbind(ts, c(i,j))
       }
    }
 }
@@ -29,7 +29,7 @@ twoSums(x, a)
 ##### 2. Three sums #####
 
 threeSums = function(x){
-  ts = NULL 
+  ts <- NULL 
   for (i in 1:(length(x) - 2)) 
   {
     for (j in (i + 1):(length(x) - 1))
@@ -37,7 +37,7 @@ threeSums = function(x){
       for (k in (j + 1):length(x)) {
            if (x[i] + x[j] + x[k] == 0)
               {
-                 ts = rbind(ts, c(i,j,k))
+                 ts <- rbind(ts, c(i,j,k))
               } 
       }
     }
@@ -52,20 +52,24 @@ threeSums(x)
 ##### 3. Palindrome  
 ##### substr(), floor(), nchar()
  
-palindrome = function(x)
-{
-  for (i in 1:floor(nchar(x)/2))
-  {
-      if (substr(x, i, i) != substr(x, (nchar(x) - i + 1), (nchar(x) - i + 1)))
-      {
-          return("not a palindrome")
-      }
-  }
-  return("palindrome")
+isPalindrome = function(x)
+{ 
+     if (is.character(x) == FALSE)
+         return("Input must be a character")
+     for (i in 1:floor(nchar(x)/2))
+     {
+          if (substr(x, i, i) != substr(x, (nchar(x) - i + 1), (nchar(x) - i + 1)))
+          {
+              return(FALSE)
+          }
+     }
+     return(TRUE)
   
 }
 
-palindrome("abdcdba")
+isPalindrome("abdcdba")
+
+isPalindrome(24)
 
 
 
@@ -74,19 +78,21 @@ palindrome("abdcdba")
 x = "shahina" 
 
 reverse = function(x){
-  y = x 
-  
+  y <- x 
+  if (is.character(x) == FALSE)
+    return("Input must be a character")
   for (i in 1:nchar(x))
   {
-    substr(y, i, i) = substr(x, nchar(x) - i + 1, nchar(x) - i + 1)
+      substr(y, i, i)  <-  substr(x, nchar(x) - i + 1, nchar(x) - i + 1)
   }
   
   return(y)
   
 }
 
-reverse(x)
+reverse("shahina")
 
+reverse(24)
 
 #### 5. remove the duplicates and sort 
 
@@ -168,7 +174,7 @@ array_sum = function(a, K) {
 
 array_sum(a, K)
 
-njnj
+
 
 
 
