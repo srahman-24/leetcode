@@ -1,0 +1,216 @@
+---
+title: "Basic Text Analysis"
+author: "Shahina Rahman"
+date: "6/28/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Basic Text Analysis in R 
+1. Character Encoding 
+2. GREP 
+3. Tokenization 
+4. Creating a Corpus 
+5. Tidy-Text 
+6. Text Pre-Processing 
+5. Document-Term Matrix 
+
+
+# 1. Character ENCODING
+
+Inconsistent character encoding is one of the most common pitfalls for those attempting to learn to perform quantitative text analysis in R. 
+
+`Character encoding` is a style of writing text in computer code that helps program such as web browser figure out how to display text. To most computer programs, text or strings also have a numerical basis called character encoding.
+
+Data may exist in multiple types of character encoding, and this can create a big hassle. 
+
+### Before we begin working with a text-based dataset, 
+it is useful to either 
+a). MAKE SURE every text uses the same character encoding. 
+b). Use a tool to FORCE or COERCE all text into a single character encoding.  
+
+The `Encoding` functions in base R can be very useful for the latter purposes. 
+
+
+# GREP 
+
+stands for `Globally search a regular expressio`n and print`. `GREP` is a tool that helps you search for the presence of a string of characters that matches a patten. 
+
+### Note: Teach 335 : how to scrape a Wikipedia page or Browser. 
+
+```{r 1}
+duke_web_scrape<- "Class of 2018: Senior Stories of Discovery, Learning and Serving\n\n\t\t\t\t\t\t\t" 
+```
+
+
+
+```{r 2}
+#grepl function is in base R 
+grepl("Class", duke_web_scrape, ignore.case = T)
+```
+grep can find all words in a string that start with a certain letter, such as "P" :
+
+```{r 2.1}
+#grep function is in base R
+some_text  <- c("This", "Professor", "is", "not")
+some_text[grep("^[P]", some_text)]
+```
+
+### gsub 
+First argument names the pattern what to replace. 
+The second argument tells us what we want to replace with. 
+Third argument is the string we want to transform. 
+
+```{r 3}
+gsub("\t", "", duke_web_scrape)
+gsub("\t|\n", "", duke_web_scrape)
+```
+
+
+# 2. TOKENIZATION 
+
+The most common way of tokenizing a text - is by individual word. 
+
+### Creating a Corpus. tm package.
+
+One of the most common data formats in the field of Natural Language Processing is a `corpus`. In R, the `tm` package is often used to create a corpus object. This package can be used to read in data in many different formats-including text within data frames, .txt files or .doc files. 
+
+Example: We begin by loading an .Rdata file that contains 3,196 recent tweets by Trump that are hosted in the following Github page: 
+
+```{r 4}
+getOption("repos")
+load(url("https://cbail.github.io/Trump_Tweets.Rdata"))
+head(trumptweets$text)
+```
+
+In order to use the `Corpus` function within the `tm` package. First lets install the `tm` package. 
+
+
+```{r 6}
+library(tm)
+trump_corpus <- Corpus(VectorSource(as.vector(trumptweets$text)))
+trump_corpus
+```
+
+We have created 3196 documents, where each document is one of Trump's tweets. It can also store other metadata like name of the author, dates tweeted etc. 
+
+
+
+## TIDY-TEXT
+An important alternative to Corpus object has emerged in recent years in the form of `tidytext`. Instead of saving a group of documents and associated meta data, text in `tidytext` contains one word per row. Each row also includes additional information about the name of the document where the word appears. 
+
+`tidytext` package is a part of the `tidyverse`, which is a family of packages that work well together in R that inlcudes other popular packages such as `dplyr` and `ggplot2`. We will use the `piping` style of coding `(%>%)` associated with such package. 
+
+
+```{r 7}
+library(tidytext)
+library(dplyr)
+
+tidy_trump_tweets <- trumptweets %>%
+    unnest_tokens("word", text)
+
+```
+
+Find the highest frequency words used by Trump. 
+
+
+```{r 8}
+
+tidy_trump_tweets  %>%
+    count(word) %>% 
+    arrange(desc(n))
+
+```
+
+
+# Text Pre-processing 
+
+Some times, very common words such as `the` are often not very informative. That is, we typically do not care if one author uses the word `the` more often than another in most forms of quantitative text analysis. But we might care a lot about how mnay times a politician uses the word `economy` on Twitter. 
+
+### Stopwords 
+
+Common words such as `the`, `and`, `but`, `for` , `is`, etc are often describes as `stopwords`. Meaning that they should not be included in a quantitative text analysis. Assuming that you are using English language, in `tidytext` we can remove stopwords as follows: 
+
+function `anti_join()`
+
+
+```{r 9}
+
+data("stop_words")
+  tidy_trump_tweets <- tidy_trump_tweets %>% 
+      anti_join(stop_words)
+
+```
+
+
+```{r 10}
+
+tidy_trump_tweets %>% 
+     count(word) %>%
+        arrange(desc(n))
+
+```
+
+
+If we want to remove some more words, we could create a custom list of stop words in the form of a character vector, and use the same `anti_join` function to remove all the words in the custom list. 
+
+
+### Removing punctuation 
+
+Generally it is important to remove the punctuation while analyzing the text. `An advantage of tidytext` is that it removes punctuation automatically. 
+
+## Removing Numbers
+
+If you want to remove the numbers. 
+`"\\b\\d+\\b"` text tells R to remove all numeric digits and the `-` sign means grep excludes them 
+
+```{r 11}
+
+tidy_trump_tweets <- tidy_trump_tweets[-grep("\\b\\d+\\b", tidy_trump_tweets$word),]
+
+```
+
+## Lower case
+
+Once again `tidytext automatically makes all words lower case`.
+
+## Stemming 
+
+Another important part. 
+For example, `stem` and `stemming` should convey the same word. 
+
+```{r 12}
+
+library(SnowballC)
+  tidy_trump_tweets <- tidy_trump_tweets %>%
+          mutate_at("word", funs(wordStem((.), language="en")))
+
+```
+
+
+# Document-Term Matrix
+
+
+```{r 13}
+
+tidy_trump_DTM <- 
+    tidy_trump_tweets %>% 
+      count(created_at, word) %>% 
+      cast_dtm(created_at, word, n)
+
+```
+
+
+
+```{r 14}
+
+tidy_trump_DTM
+
+```
+
+
+
+
