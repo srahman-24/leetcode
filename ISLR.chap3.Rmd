@@ -1,0 +1,97 @@
+---
+title: "ISLR.chap3"
+author: "Shahina Rahman"
+date: "7/3/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+For higher dimensional setting for Linear regression either you use a variable selection techniques: lasso, elastic net  or model selection techniques: AIC, BIC, adjusted R2. 
+
+## Exercise 
+
+##8.(a) Auto data 
+
+
+```{r 8.a}
+library(ISLR)
+lm.fit = lm(mpg ~ horsepower, data = Auto)
+#summary(lm.fit)
+predict(lm.fit, data.frame(horsepower = 98), interval = "confidence")
+predict(lm.fit, data.frame(horsepower = 98), interval = "prediction")
+```
+
+
+(i) yes 
+(ii) strong linearity
+(iii) negative 
+
+
+```{r 8.b}
+attach(Auto)
+plot(horsepower, mpg, pch = 20, col = "gray")
+abline(lm.fit)
+```
+
+
+```{r 8.c}
+par(mfrow = c(2,2))
+plot(lm.fit)
+```
+
+Possible problems:  Non-linearity and heteroscedaticity.
+Possible outliers and leverage points. 
+
+
+
+## 9. 
+
+```{r 9.a}
+pairs(Auto)
+```
+
+
+```{r 9.b}
+cor(Auto[,1:8])
+```
+
+
+```{r 9.c}
+lm.fit = lm(mpg ~ .-name, data = Auto)
+summary(lm.fit)
+```
+
+```{r 9.d}
+plot(lm.fit)
+```
+
+```{r 9.e}
+lm.fit <- lm(mpg ~ .-name - acceleration - origin - cylinders + displacement:weight  + weight:year, data = Auto)
+summary(lm.fit)
+#plot(lm.fit)
+```
+
+The diagnostic shows the interaction terms improved the prediction model. And also removing the uneccesary variables and updating the linear model also enhanced the R2 
+
+```{r 9.f}
+lm.fit <- lm(mpg ~ .-name + I(weight^2) + displacement:weight + year:origin + weight:year, data = Auto)
+summary(lm.fit)
+#plot(lm.fit)
+```
+
+# Cautious: Before including the polynomial transformation, try using the interaction terms, that highly improves the model.  
+
+
+# 10. Carseats. 
+
+```{r 10.a}
+
+```
+
+
+
