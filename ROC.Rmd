@@ -1,0 +1,86 @@
+---
+title: "ROC curve"
+author: "Shahina Rahman"
+date: "7/15/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## ROC curve
+
+can be defined in multiple ways : 
+
+1. Sensitivity vs  1 - Specificity 
+
+2. TP  vs FP 
+
+3. Power vs Type I Error 
+
+Make sure that we have two classes at the end. Because it is related to Hypothesis testing. 
+
+
+```{r ROC}
+library(ROCR)
+binary = read.csv("/Users/srahman/Downloads/binary.csv")
+binary$admit = as.factor(binary$admit)
+str(binary)
+```
+
+
+
+```{r logistic}
+set.seed(1)
+train = sample(1:nrow(binary), floor(nrow(binary)*0.8))
+train.data = binary[train,]
+test.data  = binary[-train,]
+out = glm(admit ~ .-gre, data = train.data, family = "binomial", subset = train)
+
+```
+
+
+```{r predict}
+prob = predict(out, test.data, type = "response")
+#contrasts(binary$admit)
+pred = rep(0, nrow(test.data))
+pred[prob > 0.5] = 1
+table(pred, test.data$admit)
+```
+
+
+
+### Sensitivity and Specificity (ROC curve)
+
+ROC = Sens vs 1 - Spec
+
+```{r sens and spec}
+TP = 5
+FP = 22
+TN = 51
+FN = 2
+sens = TP/(TP + FP)
+spec = TN/(TN + FN)
+print(sens)
+print(spec)
+```
+
+```{r ROCR}
+library(ROCR)
+pred = predict(out, test.data, type = "response")
+pred = prediction(pred, test.data$admit)
+roc  = performance(pred, "tpr", "fpr")
+plot(roc, colorize = T, ylab = "Sensitivity", xlab = "1 - Specificity")
+abline(a = 0, b = 1)
+```
+
+## Area Under the Curve (AUC)
+
+```{r AUC} 
+auc = performance(pred, "auc")
+auc = round(unlist(slot(auc, "y.values")), 3)
+plot(roc, colorize = T, ylab = "Sensitivity", xlab = "1 - Specificity")
+abline(a = 0, b = 1)
+text(0.6, 0.2, "AUC = 0.64", )
+```
