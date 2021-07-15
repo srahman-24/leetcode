@@ -168,3 +168,29 @@ print(test.error)
 ```{r Model Assesment}
 table(train.data$NSP)/length(y.train)
 ```
+
+
+### sensitivity and speicificity 
+### Type I and II errors 
+
+```{r Type I-II erros}
+TP  = 32 
+FN  = 9 + 6
+TN  = 306 + 22 + 7 + 39 
+FP  = 2 + 3
+sens = 32/(32 + 9 + 6)
+spec = TN / (TN + FP)
+print(sens)
+print(spec)
+```
+
+## Model Performace Evaluation  ROCR library
+
+```{r ROC curves}
+library(ROCR)
+prob = predict(mult.log, test.data, type = "prob")
+pred = prediction(prob, test.data$NSP)
+roc  = performance(pred, "tpr", "fpr")
+```
+
+
