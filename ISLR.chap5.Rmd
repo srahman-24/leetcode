@@ -64,7 +64,7 @@ str(Auto)
 ### Multiclass Logistic model 
 
 ```{r CTG data}
-CTG = read.csv("/Users/srahman/Downloads/Cardiotocographic.csv")
+CTG = read.csv("/Users/srahman/Downloads/Cardiotocographic.csv", header = T)
 str(CTG)
 
 ```
@@ -72,14 +72,99 @@ str(CTG)
 
 ```{r CTG response}
 
-attach(CTG)
 CTG$NSP   = as.factor(CTG$NSP)
 str(CTG)
+attach(CTG)
 ```
 
 
 ```{r training test}
+num     = floor(nrow(CTG)*0.8)
+train   = sample(1:nrow(CTG), num)
+X.train = CTG[train,1:21]
+y.train = CTG[train, 22]
+X.test  = CTG[-train,1:21]
+y.test  = CTG[-train, 22]
+train.data = CTG[train, ]
+test.data  = CTG[-train,]
+```
 
 
+### Multinomial Logistic Model 
 
+```{r nnet}
+library(nnet)
+# reference level = 1 means Normal station
+train.data$NSP  = relevel(train.data$NSP, ref = "1")
+mult.log        = multinom(NSP ~ ., data = train.data)
+```
+
+### Interpretation of Multinomial Logistic model 
+
+
+```{r summary}
+summary(mult.log)
+```
+
+
+### Get the pvalues by two sided t test 
+
+
+```{r t.test}
+
+t.test = summary(mult.log)$coefficients/summary(mult.log)$standard.errors
+pvalue =  (1 - pnorm(abs(t.test), 0, 1))*2
+print(pvalue)
+```
+
+### Final Model (Updated model)
+
+```{r update Logistic}
+
+mult.log = multinom(NSP ~ . - MLTV - MSTV - Nmax -Width - Min - Nzeros - Mode - Mean - Tendency, data = train.data)
+t.test = summary(mult.log)$coefficients/summary(mult.log)$standard.errors
+pvalue =  (1 - pnorm(abs(t.test), 0, 1))*2
+print(pvalue)
+```
+
+
+## Final Model 
+
+```{r model coef}
+
+summary(mult.log)$coefficients
+
+```
+
+Prediction model of log odds of Symptomatic vs Normal : 
+
+$log\{P(NSP = 2)/P(NSP = 1)\} = -16.2 - 0.03 LB - 784.4AC + 10.5 FM + .....$
+
+log odds of Pathological vs Normal :
+$log\{P(NSP = 3)/P(NSP = 1)\} = -22.2 + 0.37 LB - 81.7AC + 16.3 FM + .....$
+
+### Classification using predict() and training error
+
+```{r classification}
+prob = predict(mult.log, train.data)
+table(prob, y.train)
+train.error = 1 - (sum(prob == y.train)/length(y.train))
+print(train.error)
+```
+
+
+### testing error 
+
+```{r testing error}
+
+prob = predict(mult.log, test.data)
+cm = table(prob, y.test)
+test.error = 1 - sum(diag(cm))/length(y.test)
+print(test.error)
+```
+
+### Model Assesment and Accuracy 
+
+```{r Model Assesment}
+table(train.data$NSP)/length(y.train)
 ```
