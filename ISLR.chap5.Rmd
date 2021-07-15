@@ -1,0 +1,85 @@
+---
+title: "ISLR.chap5"
+author: "Shahina Rahman"
+date: "7/6/2021"
+output: pdf_document
+---
+
+
+## Cross validation vs LOOCV
+
+k-fold CV with $k < n$ has a computational advantage to LOOCV. But putting computational issues aside, a less obvious but potentially more important advantage of k-fold CV is that it often gives more accurate estimates of the test error rate than does LOOCV.  
+
+LOOCV will give approximately unbiased estimates of the test error, since each training set contains $n − 1$ observations. And performing k-fold CV for, say, $k = 5$ or $k = 10$ will lead to an intermediate level of bias. 
+
+### From the perspective of bias reduction, it is clear that LOOCV is to be preferred to k-fold CV. 
+
+We know that bias is not the only source for concern in an estimating procedure; we must also consider the procedure’s `variance`.
+
+## It turns out that LOOCV has higher variance than does k-fold CV. Why ?
+
+Ans: When we perform LOOCV, we are in effect averaging the outputs of $n$ fitted models, each of which is trained on an almost identical set of observations; therefore, these outputs are highly (positively) corre- lated with each other. In contrast, when we perform $k$-fold CV with $k < n$, we are averaging the outputs of $k$ fitted models that are somewhat less correlated with each other, since the overlap between the training sets is smaller. Hence, the test error estimate resulting from LOOCV tends to have higher variance than does the test error estimate resulting from k-fold CV.
+
+## There is a bias-variance trade-off associated with the choice of $k$ in k-fold cross-validation.
+
+```{r loocv}
+library(boot)
+library(ISLR)
+glm.fit  <- glm(mpg~horsepower, data = Auto) # without family, glm = lm 
+cv.error <- cv.glm(Auto, glm.fit)
+print(cv.error)
+```
+
+
+```{r loocv-polynomial}
+cv.error <- rep(0,5)
+for (i in 1:5 ) {
+glm.fit  <- glm(mpg~poly(horsepower, i), data = Auto) # without family,  cv.error[i] <- cv.glm(Auto, glm.fit)$delta[1]
+}
+print(cv.error)
+```
+
+
+```{r k-foldcv-polynomial}
+set.seed(17)
+cv.error <- NULL
+for (i in 1:5 ) {
+glm.fit  <- glm(mpg~poly(horsepower, i), data = Auto) # without family, cv.error <- c(cv.error, cv.glm(Auto, glm.fit, K = 10)$delta[1])
+}
+print(cv.error)
+```
+
+## Bootstrap: Estimating the Accuracy of any complicated estimates. 
+
+
+```{r structure data}
+str(Auto)
+```
+
+
+```{r }
+str(Auto)
+```
+
+### Multiclass Logistic model 
+
+```{r CTG data}
+CTG = read.csv("/Users/srahman/Downloads/Cardiotocographic.csv")
+str(CTG)
+
+```
+
+
+```{r CTG response}
+
+attach(CTG)
+CTG$NSP   = as.factor(CTG$NSP)
+str(CTG)
+```
+
+
+```{r training test}
+
+
+
+```

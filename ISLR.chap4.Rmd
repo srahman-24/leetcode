@@ -1,0 +1,176 @@
+---
+title: "ISLR.chap3"
+author: "Shahina Rahman"
+date: "7/3/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Classification: Logistic, LDA, QDA, kNN
+
+Nonlinear cross-entropy or the binomial likelihood function. 
+Maximum likelihood is a very general approach that is used to fit many of the non-linear models that we examine. The linear regression setting, the least squares approach is in fact a special case of maximum likelihood. 
+If you assume $Y$, the response to behave like a Gaussian random variable. Then the least square estimates is equivalent to mle estimates after maximizing the Gaussian likelihood. 
+
+
+## Lab 
+
+##The Stock market Data 
+
+
+```{r Smarket}
+library(ISLR)
+data("Smarket")
+#names(Smarket)
+#dim(Smarket)
+#summary(Smarket)
+abs(cor(Smarket[,-9])) > 0.5
+attach(Smarket)
+plot(Year,Volume)
+```
+
+
+## Logistic regression 
+
+```{r Logistic}
+glm.fit <- glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, data = Smarket, family = binomial)
+summary(glm.fit)
+```
+
+
+
+There is `no clear evidence` of Lag1 and Direction. 
+
+```{r Logistic1}
+prob = predict(glm.fit, type = "response")
+contrasts(Direction)
+predict.glm <- rep("Down", nrow(Smarket))
+predict.glm[prob > 0.5] <- "Up"
+#print(predict)
+#Confusion matrix 
+table(predict.glm, Direction)
+train.error <- mean(predict.glm == Direction)
+print(train.error)
+```
+
+
+## Training Data and Testing Data
+
+
+```{r train-test}
+train   <- Year < 2005   # boolean vectors 
+test    <- Smarket[!train,] # submatrix 
+glm.fit <- glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, data = Smarket, family = binomial, subset = train)
+prob    <- predict(glm.fit, test, type = "response")
+
+# Predicting on a new data points
+glm.fit <- glm(Direction ~ Lag1 + Lag2, data = Smarket, family = binomial, subset = train)
+df   <- data.frame(Lag1 = c(1.2, 1.5), Lag2 = c(1.1, -0.8))
+predict(glm.fit, df, type  = "response")
+```
+
+
+
+## Linear Discriminant analysis: When the classes are well separated and the number of samples are small, then the coefficient estimates from the logistic regression is surprisingly unstable. If the distribution of the predictors are approximately Normal, then LDA or QDA gives more stable estimates. Also LDA, QDA can give mutliclass classification. 
+
+Also Bayes classifier has the optimal error rates, given that we know the posterior of Y = 1 given X. So if we can specify the distribution of the predictors correctly, we can develop a classifier closest to the Bayes classifier. 
+
+
+```{r LDA}
+library(MASS)
+train   <- Year < 2005   # boolean vectors 
+test    <- Smarket[!train,] # submatrix 
+lda.fit <- lda(Direction ~ Lag1 + Lag2, data = Smarket, subset = train)
+lda.fit
+```
+
+$ \log \{ P(Direction = UP)/P(Direction = Down)\} = -0.64Lag1 -0.513Lag2$
+
+If $-0.64Lag1 -0.513Lag2 > 0 $, then the classifier will classify `Up` else `Down`
+
+
+```{r LDA}
+library(MASS)
+lda.predict <- predict(lda.fit, test)
+table(lda.predict$class, test[,9])
+lda.predict$posterior
+```
+
+## QDA 
+
+```{r QDA}
+library(MASS)
+qda.fit <- qda(Direction ~ Lag1 + Lag2, data = Smarket, subset = train)
+qda.fit
+predict(qda.fit, test)$class
+predict(qda.fit, test)$posterior
+```
+
+
+## KNN : nonparameteric classifiers 
+
+This function works rather differently from the other model- fitting functions that we have encountered thus far. Rather than a two-step approach in which we first fit the model and then we use the model to make predictions, knn() forms predictions using a single command. The function requires four inputs.
+
+```{r QDA}
+library(class)
+train.data  = Smarket[train, 2:3]
+test.data   = Smarket[!train, 2:3]
+train.y     = Direction[train]
+```
+
+
+```{r knn}
+set.seed(1)
+knn.pred   = knn(train.data, test.data, train.y, k = 3)
+table(knn.pred, test[,9])
+```
+
+### An application to Caravan Insurance Data 
+
+
+```{r Caravan}
+library(ISLR)
+dim(Caravan)
+#names(Caravan)
+#attach(Caravan)
+#summary(Purchase)
+data         = scale(Caravan[,-86])
+sample.train = floor(5822*.8)
+train        = data[1:sample.train,]
+test         = data[-(1:sample.train),]
+train.y      = Purchase[1:sample.train]
+test.y       = Purchase[-(1:sample.train)]
+
+set.seed(1)
+knn5.predict = knn(train, test, train.y, k = 5)
+knn3.predict = knn(train, test, train.y, k = 3)
+knn1.predict = knn(train, test, train.y, k = 1)
+
+
+```
+
+
+```{r Knn}
+table(knn5.predict, test.y)
+error5 = mean(knn5.predict != test.y)
+print(error5)
+```
+
+```{r Logistic-Caravan}
+glm.fit  = glm(Purchase ~ ., data = Caravan, family = binomial, subset = 1:sample.train)
+glm.prob = predict(glm.fit, Caravan[-(1:sample.train),], type = "response")
+glm.predict = rep("No", nrow(Caravan) - sample.train)
+glm.predict[glm.prob > 0.5] = "Yes"
+table(glm.predict, Purchase[-(1:sample.train)])
+error.log = mean(glm.predict != test.y)
+print(error.log)
+```
+
+
+### Conclusion:  When the number of features p is large, there tends to be a deterioration in the performance of KNN and other local approaches that perform prediction using only observations that are near the test observation for which a prediction must be made. This phenomenon is known as the `curse of dimensionality`, and it ties into the fact that nonparametric approaches often perform poorly when p is large. This happens when number of dimensions increases, the neighborhood of a test observation which looks like a hyper cube or a hypersphere contains very few observations for estimation or prediction. 
+
+
+
