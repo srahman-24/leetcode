@@ -1,10 +1,9 @@
 ---
 title: "ISLR.chap5"
 author: "Shahina Rahman"
-date: "7/6/2021"
+date: "7/15/2021"
 output: pdf_document
 ---
-
 
 ## Cross validation vs LOOCV
 
@@ -23,7 +22,7 @@ Ans: When we perform LOOCV, we are in effect averaging the outputs of $n$ fitted
 ## There is a bias-variance trade-off associated with the choice of $k$ in k-fold cross-validation.
 
 ```{r loocv}
-library(boot)
+library(boot)  #function: cv.glm()
 library(ISLR)
 glm.fit  <- glm(mpg~horsepower, data = Auto) # without family, glm = lm 
 cv.error <- cv.glm(Auto, glm.fit)
@@ -34,7 +33,8 @@ print(cv.error)
 ```{r loocv-polynomial}
 cv.error <- rep(0,5)
 for (i in 1:5 ) {
-glm.fit  <- glm(mpg~poly(horsepower, i), data = Auto) # without family,  cv.error[i] <- cv.glm(Auto, glm.fit)$delta[1]
+glm.fit  <- glm(mpg~poly(horsepower, i), data = Auto) # without family,  
+cv.error[i] <- cv.glm(Auto, glm.fit)$delta[1]
 }
 print(cv.error)
 ```
@@ -44,7 +44,8 @@ print(cv.error)
 set.seed(17)
 cv.error <- NULL
 for (i in 1:5 ) {
-glm.fit  <- glm(mpg~poly(horsepower, i), data = Auto) # without family, cv.error <- c(cv.error, cv.glm(Auto, glm.fit, K = 10)$delta[1])
+glm.fit  <- glm(mpg~poly(horsepower, i), data = Auto) # without family, 
+cv.error <- c(cv.error, cv.glm(Auto, glm.fit, K = 10)$delta[1])
 }
 print(cv.error)
 ```
@@ -55,142 +56,4 @@ print(cv.error)
 ```{r structure data}
 str(Auto)
 ```
-
-
-```{r }
-str(Auto)
-```
-
-### Multiclass Logistic model 
-
-```{r CTG data}
-CTG = read.csv("/Users/srahman/Downloads/Cardiotocographic.csv", header = T)
-str(CTG)
-
-```
-
-
-```{r CTG response}
-
-CTG$NSP   = as.factor(CTG$NSP)
-str(CTG)
-attach(CTG)
-```
-
-
-```{r training test}
-num     = floor(nrow(CTG)*0.8)
-train   = sample(1:nrow(CTG), num)
-X.train = CTG[train,1:21]
-y.train = CTG[train, 22]
-X.test  = CTG[-train,1:21]
-y.test  = CTG[-train, 22]
-train.data = CTG[train, ]
-test.data  = CTG[-train,]
-```
-
-
-### Multinomial Logistic Model 
-
-```{r nnet}
-library(nnet)
-# reference level = 1 means Normal station
-train.data$NSP  = relevel(train.data$NSP, ref = "1")
-mult.log        = multinom(NSP ~ ., data = train.data)
-```
-
-### Interpretation of Multinomial Logistic model 
-
-
-```{r summary}
-summary(mult.log)
-```
-
-
-### Get the pvalues by two sided t test 
-
-
-```{r t.test}
-
-t.test = summary(mult.log)$coefficients/summary(mult.log)$standard.errors
-pvalue =  (1 - pnorm(abs(t.test), 0, 1))*2
-print(pvalue)
-```
-
-### Final Model (Updated model)
-
-```{r update Logistic}
-
-mult.log = multinom(NSP ~ . - MLTV - MSTV - Nmax -Width - Min - Nzeros - Mode - Mean - Tendency, data = train.data)
-t.test = summary(mult.log)$coefficients/summary(mult.log)$standard.errors
-pvalue =  (1 - pnorm(abs(t.test), 0, 1))*2
-print(pvalue)
-```
-
-
-## Final Model 
-
-```{r model coef}
-
-summary(mult.log)$coefficients
-
-```
-
-Prediction model of log odds of Symptomatic vs Normal : 
-
-$log\{P(NSP = 2)/P(NSP = 1)\} = -16.2 - 0.03 LB - 784.4AC + 10.5 FM + .....$
-
-log odds of Pathological vs Normal :
-$log\{P(NSP = 3)/P(NSP = 1)\} = -22.2 + 0.37 LB - 81.7AC + 16.3 FM + .....$
-
-### Classification using predict() and training error
-
-```{r classification}
-prob = predict(mult.log, train.data)
-table(prob, y.train)
-train.error = 1 - (sum(prob == y.train)/length(y.train))
-print(train.error)
-```
-
-
-### testing error 
-
-```{r testing error}
-
-prob = predict(mult.log, test.data)
-cm = table(prob, y.test)
-test.error = 1 - sum(diag(cm))/length(y.test)
-print(test.error)
-```
-
-### Model Assesment and Accuracy 
-
-```{r Model Assesment}
-table(train.data$NSP)/length(y.train)
-```
-
-
-### sensitivity and speicificity 
-### Type I and II errors 
-
-```{r Type I-II erros}
-TP  = 32 
-FN  = 9 + 6
-TN  = 306 + 22 + 7 + 39 
-FP  = 2 + 3
-sens = 32/(32 + 9 + 6)
-spec = TN / (TN + FP)
-print(sens)
-print(spec)
-```
-
-## Model Performace Evaluation  ROCR library
-
-```{r ROC curves}
-library(ROCR)
-prob = predict(mult.log, test.data, type = "prob")
-pred = prediction(prob, test.data$NSP)
-roc  = performance(pred, "tpr", "fpr")
-```
-
 

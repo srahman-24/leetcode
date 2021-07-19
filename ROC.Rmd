@@ -45,7 +45,7 @@ out = glm(admit ~ .-gre, data = train.data, family = "binomial", subset = train)
 prob = predict(out, test.data, type = "response")
 #contrasts(binary$admit)
 pred = rep(0, nrow(test.data))
-pred[prob > 0.5] = 1
+pred[prob > 0.45] = 1
 table(pred, test.data$admit)
 ```
 
@@ -56,15 +56,33 @@ table(pred, test.data$admit)
 ROC = Sens vs 1 - Spec
 
 ```{r sens and spec}
-TP = 5
-FP = 22
-TN = 51
-FN = 2
+TP = 8
+FP = 7
+TN = 46
+FN = 19
 sens = TP/(TP + FP)
 spec = TN/(TN + FN)
 print(sens)
 print(spec)
 ```
+
+### Error rates vs Threshold. 
+
+
+```{r thresholds}
+library(ROCR)
+pred = predict(out, test.data, type = "response")
+pred = prediction(pred, test.data$admit)
+eval = performance(pred, "acc")
+plot(eval)
+
+```
+
+
+
+
+### ROC curve is a popular graphic for simultaenous display of the two types of errors for all possible thresholds. 
+
 
 ```{r ROCR}
 library(ROCR)
