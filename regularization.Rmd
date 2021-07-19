@@ -1,0 +1,33 @@
+---
+title: "ISLR.chap6"
+author: "Shahina Rahman"
+date: "7/15/2021"
+output: pdf_document
+---
+# Linear Model and Regularization 
+
+Why might we want to use a different fitting procedure instead of least squares. As we will see, alternative fitting procedures can yield `better prediction accuracy and model interpretability. 
+
+For $p>n$, then there is no longer a unique least squares coefficient estimate for Linear models. The variance of the least square estimates will be infinite. So the method cannot be used at all. So overally the MSE will be infinite, even if the bias goes to $0$. So with `contraining` or `shrinking` the coefficients, one might get little `bias` but much reduced variance, hence `MSE` will be finite and hence provides a better model. And that will lead to increase in overall accuracy. 
+
+`Constraining` and `Shrinking` can make the Model more interpretable as it will remove the uneccessary predictors. Unneceesary predictors leads to over complicated model with no significant gain in accuracy. 
+
+
+## Automatic feature selection for better predictability
+
+There are some ways to achieve this: 
+
+1. Subset selection 
+2. Shrinkage (Regularization)
+3. Dimension Reduction ( Using a lower M-dimensional  projection) 
+
+
+# 1. Subset Selection 
+
+To perform `best subset selection`, we fit a separate least square regression for each possible combination of the $p$ predictors. That is, we fit all possible, $2^p$ models. 
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
